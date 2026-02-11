@@ -1,77 +1,16 @@
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useMotionValue, useTransform, animate } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-const SAVE_DELAY_MS = 1400;
+const SAVE_DELAY_MS = 3000;
 
 type SaveState = "idle" | "saving" | "saved";
-
-type VisualConfig = {
-  label: string;
-  description: string;
-  background: string;
-  textColor: string;
-  ring: string;
-};
-
-const stateConfig: Record<SaveState, VisualConfig> = {
-  idle: {
-    label: "Save",
-    description: "Ready to save your latest changes.",
-    background: "#F0F0F0",
-    textColor: "#1f1f1f",
-    ring: "0 0 0 1px rgba(15, 23, 42, 0.1), 0 12px 30px rgba(15, 23, 42, 0.25)"
-  },
-  saving: {
-    label: "SAVING",
-    description: "Working on it with a smooth transition.",
-    background: "#111827",
-    textColor: "#e2e8f0",
-    ring: "0 0 0 1px rgba(148, 163, 184, 0.4), 0 18px 36px rgba(15, 23, 42, 0.2)"
-  },
-  saved: {
-    label: "SAVED",
-    description: "Everything is safely stored.",
-    background: "#16a34a",
-    textColor: "#f0fdf4",
-    ring: "0 0 0 1px rgba(22, 163, 74, 0.5), 0 18px 36px rgba(22, 163, 74, 0.25)"
-  }
-};
-
-const labelTransition = {
-  type: "spring",
-  stiffness: 420,
-  damping: 28
-} as const;
 
 export default function App() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const timerRef = useRef<number | null>(null);
-  const prefersReducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        window.clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  const config = stateConfig[saveState];
-
-  const nextStateDescription = useMemo(() => {
-    if (saveState === "saved") {
-      return "Click again to reset the button.";
-    }
-    if (saveState === "saving") {
-      return "Hang tight, saving in progress.";
-    }
-    return "Click to save and preview the animation.";
-  }, [saveState]);
 
   const handleClick = () => {
-    if (saveState === "saving") {
-      return;
-    }
+    if (saveState === "saving") return;
 
     if (saveState === "saved") {
       setSaveState("idle");
@@ -79,55 +18,212 @@ export default function App() {
     }
 
     setSaveState("saving");
-    if (timerRef.current) {
-      window.clearTimeout(timerRef.current);
-    }
+
+    if (timerRef.current) window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => {
       setSaveState("saved");
     }, SAVE_DELAY_MS);
   };
 
+  const isIdle = saveState === "idle";
+
+  const handleBackdropClick = () => {
+    if (saveState === "saved") setSaveState("idle");
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-12 text-slate-100">
-      <div className="mx-auto flex h-full items-center justify-center">
-        <div className="flex h-[500px] w-[500px] items-center justify-center bg-[#1F1F1F] p-10 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
-          <div className="flex w-full flex-col items-center gap-8 text-center">
-            <motion.button
-              type="button"
-              onClick={handleClick}
-              disabled={saveState === "saving"}
-              aria-busy={saveState === "saving"}
-              className="relative inline-flex items-center justify-center gap-3 rounded-[32px] px-4 py-2 text-xs font-semibold tracking-normal focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 disabled:cursor-not-allowed"
-              animate={{
-                backgroundColor: config.background,
-                color: config.textColor,
-                boxShadow: config.ring
-              }}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0 }
-                  : { type: "spring", stiffness: 260, damping: 24 }
-              }
-              whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-            >
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={saveState}
-                  className="flex items-center gap-2"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={prefersReducedMotion ? { duration: 0 } : labelTransition}
-                >
-                  <span>{config.label}</span>
-                </motion.span>
-              </AnimatePresence>
-            </motion.button>
-          </div>
+    <div
+      className="h-screen w-screen overflow-hidden bg-[#1A1A1A] flex items-center justify-center cursor-default"
+      onClick={handleBackdropClick}
+    >
+      {/* 400×400 artboard — zoomed to fit screen */}
+      <div className="flex h-[400px] w-[400px] items-center justify-center bg-[#000000] scale-[2] origin-center">
+        <div className="relative flex justify-center" onClick={(e) => e.stopPropagation()}>
+          {/* Pill button — hugs content, expands/shrinks with text */}
+          <motion.button
+            type="button"
+            onClick={handleClick}
+            disabled={saveState === "saving"}
+            layout
+            className="relative mt-1 inline-flex h-[32px] items-center justify-center rounded-[32px] px-4 text-[12px] font-semibold leading-[20px] tracking-[0.02em] disabled:cursor-not-allowed overflow-visible"
+            animate={{
+              backgroundColor: isIdle ? "#F0F0F0" : "#1F1F1F",
+              color: isIdle ? "#1F1F1F" : "#F0F0F0",
+            }}
+            transition={{ duration: 0.25, ease: "easeInOut", layout: { duration: 0.25, ease: "easeInOut" } }}
+            whileHover={isIdle ? { scale: 1.04 } : undefined}
+            whileTap={isIdle ? { scale: 0.97 } : undefined}
+          >
+            <MorphingLabel state={saveState} />
+          </motion.button>
+
+          {/* Badge — top-right of pill */}
+          <AnimatePresence>
+            {!isIdle && (
+              <motion.div
+                className="absolute right-0 top-0 flex h-[16px] w-[16px] items-center justify-center rounded-[8px] bg-[#1F1F1F]"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              >
+                <SpinnerToCheck isSaved={saveState === "saved"} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
   );
 }
 
+/* ─── Morphing Label Component ─────────────────────────────────────────── */
 
+const SUFFIX_TRANSITION = { duration: 0.175, ease: "easeOut" as const };
+
+function MorphingLabel({ state }: { state: SaveState }) {
+  const root = "Sav";
+  const suffixes: Record<SaveState, string> = {
+    idle: "e",
+    saving: "ing",
+    saved: "ed",
+  };
+
+  const suffixWidth: Record<SaveState, number> = {
+    idle: 1,
+    saving: 3,
+    saved: 2,
+  };
+
+  return (
+    <span className="inline-flex items-center justify-center whitespace-nowrap">
+      <span className="inline-block">{root}</span>
+      <motion.span
+        layout
+        className="relative inline-block h-[20px] leading-[20px] overflow-hidden align-top"
+        animate={{ width: `${suffixWidth[state]}ch` }}
+        transition={{ duration: 0.25, ease: "easeInOut" }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={state}
+            className="absolute left-0 top-0 inline-block"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={SUFFIX_TRANSITION}
+          >
+            {suffixes[state]}
+          </motion.span>
+        </AnimatePresence>
+      </motion.span>
+    </span>
+  );
+}
+
+/* ─── Spinner → Checkmark morph (12×12) ───────────────────────────────── */
+
+const CIRCUMFERENCE = 2 * Math.PI * 5; // ~31.4 for r=5
+
+function SpinnerToCheck({ isSaved }: { isSaved: boolean }) {
+  const rotation = useMotionValue(0);
+  const dashOffset = useMotionValue(CIRCUMFERENCE * 0.67);
+  const fillOpacity = useMotionValue(0);
+  const checkProgress = useMotionValue(0);
+
+  // Continuous spin while saving
+  useEffect(() => {
+    if (isSaved) return;
+
+    const controls = animate(rotation, rotation.get() + 360, {
+      duration: 0.7,
+      ease: "linear",
+      repeat: Infinity,
+    });
+
+    return () => controls.stop();
+  }, [isSaved, rotation]);
+
+  // On saved: complete arc → fill white → draw check
+  useEffect(() => {
+    if (!isSaved) return;
+
+    const step1 = animate(dashOffset, 0, {
+      duration: 0.3,
+      ease: "easeInOut",
+    });
+
+    const timeout = setTimeout(() => {
+      animate(fillOpacity, 1, { duration: 0.2, ease: "easeOut" });
+      animate(checkProgress, 1, { duration: 0.3, ease: "easeOut" });
+    }, 280);
+
+    return () => {
+      step1.stop();
+      clearTimeout(timeout);
+    };
+  }, [isSaved, dashOffset, fillOpacity, checkProgress]);
+
+  // Reset when going back to spinning
+  useEffect(() => {
+    if (!isSaved) {
+      dashOffset.set(CIRCUMFERENCE * 0.67);
+      fillOpacity.set(0);
+      checkProgress.set(0);
+    }
+  }, [isSaved, dashOffset, fillOpacity, checkProgress]);
+
+  const trackOpacity = useTransform(fillOpacity, [0, 1], [0.2, 0]);
+  const arcOpacity = useTransform(fillOpacity, [0, 0.5], [1, 0]);
+
+  return (
+    <div className="relative h-[12px] w-[12px]">
+      {/* Spinning circle SVG */}
+      <motion.div className="absolute inset-0" style={{ rotate: rotation }}>
+        <svg viewBox="0 0 12 12" fill="none" className="h-full w-full">
+          <motion.circle
+            cx="6"
+            cy="6"
+            r="5"
+            stroke="#FFFFFF"
+            strokeWidth="1.5"
+            style={{ opacity: trackOpacity }}
+          />
+          <motion.circle
+            cx="6"
+            cy="6"
+            r="5"
+            stroke="#FFFFFF"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeDasharray={CIRCUMFERENCE}
+            style={{ strokeDashoffset: dashOffset, opacity: arcOpacity }}
+            transform="rotate(-90 6 6)"
+          />
+        </svg>
+      </motion.div>
+
+      {/* White filled circle */}
+      <motion.div
+        className="absolute inset-0 rounded-full bg-white"
+        style={{ opacity: fillOpacity }}
+      />
+
+      {/* Checkmark */}
+      <motion.svg
+        viewBox="0 0 12 12"
+        fill="none"
+        className="absolute inset-0 h-full w-full"
+      >
+        <motion.path
+          d="M3.5 6.2L5.2 7.8L8.5 4.2"
+          stroke="#1F1F1F"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ pathLength: checkProgress }}
+        />
+      </motion.svg>
+    </div>
+  );
+}
