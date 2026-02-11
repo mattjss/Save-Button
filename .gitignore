@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Generated config (source is .ts)
+tailwind.config.js
+tailwind.config.d.ts
+vite.config.js
+vite.config.d.ts
+
+# Env and IDE
+.env
+.env.*
+.idea/
+.vscode/
+*.log
