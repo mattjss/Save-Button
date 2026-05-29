@@ -86,6 +86,7 @@ export default function App() {
     <div
       className="h-screen w-screen overflow-hidden bg-[#101010] flex items-center justify-center cursor-pointer"
       onClick={handleBackdropClick}
+      style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)', borderRadius: 10 }}
     >
       {/* 400×400 artboard — zoomed to fit screen */}
       <div className="flex h-[400px] w-[400px] items-center justify-center bg-[#101010] scale-[1.5] origin-center">
