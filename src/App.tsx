@@ -33,7 +33,7 @@ export default function App() {
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden bg-[#1A1A1A] flex items-center justify-center cursor-default"
+      className="h-screen w-screen overflow-hidden bg-[#101010] flex items-center justify-center cursor-default"
       onClick={handleBackdropClick}
     >
       {/* 400×400 artboard — zoomed to fit screen */}
