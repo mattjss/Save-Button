@@ -33,11 +33,11 @@ export default function App() {
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden bg-[#101010] flex items-center justify-center cursor-default"
+      className="h-screen w-screen overflow-hidden bg-[#101010] flex items-center justify-center cursor-pointer"
       onClick={handleBackdropClick}
     >
       {/* 400×400 artboard — zoomed to fit screen */}
-      <div className="flex h-[400px] w-[400px] items-center justify-center bg-[#000000] scale-[2] origin-center">
+      <div className="flex h-[400px] w-[400px] items-center justify-center bg-[#101010] scale-[2] origin-center">
         <div className="relative flex justify-center" onClick={(e) => e.stopPropagation()}>
           {/* Pill button — hugs content, expands/shrinks with text */}
           <motion.button
