@@ -6,14 +6,14 @@ const SAVE_DELAY_MS = 3000;
 type SaveState = "idle" | "saving" | "saved";
 
 /* ─── Web Audio Sound Design ──────────────────────────────────────────────── */
-// Warm, smooth sounds — inspired by Notion and Apple Notes
+// Minimal, classy — single tones, clean intervals, understated
 
 function getAC(): AudioContext {
   if (!(window as any)._saveAC) (window as any)._saveAC = new AudioContext()
   return (window as any)._saveAC
 }
 
-function note(freq: number, dur: number, vol = 0.09, when = 0, atk = 0.006) {
+function note(freq: number, dur: number, vol = 0.09, when = 0) {
   const ac = getAC()
   if (ac.state === 'suspended') ac.resume()
   const osc = ac.createOscillator()
@@ -22,9 +22,8 @@ function note(freq: number, dur: number, vol = 0.09, when = 0, atk = 0.006) {
   osc.type = 'sine'
   osc.frequency.value = freq
   gain.gain.setValueAtTime(0, t0)
-  gain.gain.linearRampToValueAtTime(vol, t0 + atk)
-  gain.gain.exponentialRampToValueAtTime(vol * 0.18, t0 + dur * 0.38)
-  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
+  gain.gain.linearRampToValueAtTime(vol, t0 + 0.005)
+  gain.gain.setTargetAtTime(0.0001, t0 + 0.012, dur * 0.28)
   osc.connect(gain)
   gain.connect(ac.destination)
   osc.start(t0)
@@ -32,19 +31,14 @@ function note(freq: number, dur: number, vol = 0.09, when = 0, atk = 0.006) {
 }
 
 const sounds = {
-  // A5 + A6 octave whisper — barely there
-  hover: () => { note(880, 0.032, 0.014); note(1760, 0.028, 0.005) },
-  // G5 → E5 descent with low-freq body — like a soft rubber stamp
-  click: () => { note(784, 0.095, 0.092); note(659, 0.13, 0.052, 0.042); note(196, 0.038, 0.038, 0, 0.003) },
-  // A4 heartbeat pulse — slow, background, non-intrusive
-  tick: () => note(880, 0.018, 0.01, 0, 0.004),
-  // C major arpeggio: C6 → E6 → G6 — warm completion
-  success: () => {
-    note(1046.5, 0.22, 0.085)
-    note(1318.5, 0.26, 0.075, 0.14)
-    note(1568, 0.34, 0.065, 0.26)
-    note(1568, 0.28, 0.022, 0.36) // soft echo tail
-  },
+  // C6 single whisper — glass tap
+  hover: () => note(1046.5, 0.08, 0.012),
+  // E5 clean single strike
+  click: () => note(659.25, 0.1, 0.11),
+  // E4 quiet mechanical tick
+  tick: () => note(329.63, 0.02, 0.009),
+  // A5 → E6 ascending perfect 5th — clean, simple resolution
+  success: () => { note(880, 0.18, 0.095); note(1318.5, 0.26, 0.082, 0.16) },
 }
 
 /* ─── Main Component ──────────────────────────────────────────────────────── */
@@ -94,7 +88,7 @@ export default function App() {
       onClick={handleBackdropClick}
     >
       {/* 400×400 artboard — zoomed to fit screen */}
-      <div className="flex h-[400px] w-[400px] items-center justify-center bg-[#101010] scale-[2] origin-center">
+      <div className="flex h-[400px] w-[400px] items-center justify-center bg-[#101010] scale-[1.5] origin-center">
         <div className="relative flex justify-center" onClick={(e) => e.stopPropagation()}>
           {/* Pill button */}
           <motion.button
