@@ -29,11 +29,18 @@ function note(freq: number, dur: number, vol = 0.09, when = 0) {
   osc.stop(t0 + dur + 0.04)
 }
 
+let _audioMuted = true; // muted by default; portfolio postMessage controls this
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'setMuted') _audioMuted = !!e.data.muted
+  })
+}
+
 const sounds = {
-  hover: () => note(1046.5, 0.08, 0.012),
-  click: () => note(659.25, 0.1, 0.11),
-  tick: () => note(329.63, 0.02, 0.009),
-  success: () => { note(880, 0.18, 0.095); note(1318.5, 0.26, 0.082, 0.16) },
+  hover: () => { if (!_audioMuted) note(1046.5, 0.08, 0.012) },
+  click: () => { if (!_audioMuted) note(659.25, 0.1, 0.11) },
+  tick:  () => { if (!_audioMuted) note(329.63, 0.02, 0.009) },
+  success: () => { if (!_audioMuted) { note(880, 0.18, 0.095); note(1318.5, 0.26, 0.082, 0.16) } },
 }
 
 /* ─── Main Component ──────────────────────────────────────────────────────── */
