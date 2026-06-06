@@ -24,3 +24,27 @@ body {
 button {
   font-family: inherit;
 }
+
+/* Knob toggle — matches Terminal / Satoshi style */
+.toggle {
+  position: fixed; bottom: 24px; right: 24px;
+  display: inline-block; width: 26px; height: 14px; cursor: pointer;
+}
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.knob {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.08);
+  border-radius: 7px; transition: background 0.2s;
+}
+.knob::before {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle input:checked + .knob { background: rgba(255,255,255,0.18); }
+.toggle input:checked + .knob::before { transform: translateX(12px); background: rgba(255,255,255,0.7); }
+.light .knob { background: rgba(0,0,0,0.10); }
+.light .knob::before { background: rgba(0,0,0,0.26); }
+.light .toggle input:checked + .knob { background: rgba(0,0,0,0.16); }
+.light .toggle input:checked + .knob::before { transform: translateX(12px); background: rgba(0,0,0,0.68); }

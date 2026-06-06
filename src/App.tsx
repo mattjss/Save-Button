@@ -89,7 +89,7 @@ export default function App() {
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden flex items-center justify-center cursor-pointer"
+      className={`h-screen w-screen overflow-hidden flex items-center justify-center cursor-pointer${isLight ? ' light' : ''}`}
       onClick={handleBackdropClick}
       style={{
         background: isLight ? '#FCFCFC' : '#101010',
@@ -138,20 +138,10 @@ export default function App() {
       </div>
 
       {!isEmbed && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setTheme(t => t === 'dark' ? 'light' : 'dark') }}
-          aria-label="Toggle theme"
-          style={{
-            position: 'fixed', bottom: 24, right: 24,
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            color: isLight ? '#191919' : '#fafafa', opacity: 0.5,
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
-            {isLight && <circle cx="8" cy="8" r="4" fill="currentColor"/>}
-          </svg>
-        </button>
+        <label className="toggle" aria-label="Toggle theme" onClick={(e) => e.stopPropagation()}>
+          <input type="checkbox" checked={isLight} onChange={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} />
+          <span className="knob"></span>
+        </label>
       )}
     </div>
   );
